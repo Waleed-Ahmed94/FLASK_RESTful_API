@@ -3,15 +3,12 @@ from flask_restful import Resource, Api, reqparse
 from flask.ext.mysql import MySQL
 
 mysql = MySQL()
-
-
 app = Flask(__name__)
 api = Api(app)
 app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'arbisoft'
 app.config['MYSQL_DATABASE_DB'] = 'ItemListDb'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-
 mysql.init_app(app)
 
 
@@ -22,20 +19,17 @@ class CreateUser(Resource):
             parser.add_argument('email', type=str, help='Email address to create user')
             parser.add_argument('password', type=str, help='Password to create user')
             args = parser.parse_args()
-
             _userEmail = args['email']
             _userPassword = args['password']
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.callproc('spCreateUser',(_userEmail,_userPassword))
             data = cursor.fetchall()
-
             if len(data) is 0:
                 conn.commit()
                 return {'StatusCode':'200','Message': 'User creation success'}
             else:
                 return {'StatusCode':'1000','Message': str(data[0])}
-
         except Exception as e:
             return {'error': str(e)}
             
@@ -49,7 +43,6 @@ class AuthenticateUser(Resource):
             args = parser.parse_args()
             _userEmail = args['email']
             _userPassword = args['password']
-
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.callproc('sp_AuthenticateUser',(_userEmail,))
@@ -62,6 +55,7 @@ class AuthenticateUser(Resource):
         except Exception as e:
             return {'error': str(e)}
             
+
 class AddItem(Resource):
     def post(self):
         try:
@@ -76,24 +70,21 @@ class AddItem(Resource):
             cursor.callproc("sp_AddItems",(_userid, _itemname))
             conn.commit()
             return {'StatusCode':'200','Message': 'Success'}
-
         except Exception as e:
             return { "error" : str(e)}
             
+
 class GetAllItems(Resource):
     def post(self):
         try: 
             parser = reqparse.RequestParser()
             parser.add_argument('id', type=str)
             args = parser.parse_args()
-
             _userId = args['id']
-
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.execute("SELECT Id,ItemName FROM tblItem WHERE UserId = '{Id}'".format(Id=_userId))
             data = cursor.fetchall()
-
             items_list=[];
             for item in data:
                 i = {
@@ -101,9 +92,7 @@ class GetAllItems(Resource):
                     'Item':item[1]
                 }
                 items_list.append(i)
-
             return {'StatusCode':'200','Items':items_list}
-
         except Exception as e:
             return {'error': str(e)}
             
